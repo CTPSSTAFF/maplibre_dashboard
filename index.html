@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MapLibre TAZ Dashboard (No Raster)</title>
+  
+  <!-- MapLibre GL CSS -->
+  <link
+    href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  
+  <!-- Our own custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Turf.js for bounding box calculation -->
+  <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+</head>
+<body>
+  <!-- Sidebar for controls -->
+  <div id="controls">
+    <h1>TAZ Dashboard</h1>
+
+    <!-- Checkbox for Population layer -->
+    <div class="filter-group">
+      <input type="checkbox" id="persCheckbox" checked />
+      <label for="persCheckbox">Show Population (persns19)</label>
+    </div>
+    <!-- Population slider -->
+    <div class="filter-group">
+      <label for="persnsSlider">Population Filter:</label>
+      <input
+        type="range"
+        id="persnsSlider"
+        name="persnsSlider"
+        min="0"
+        max="5000"
+        step="100"
+        value="0"
+      />
+      <span id="persnsValue">0</span>
+    </div>
+
+    <!-- Checkbox for Employment layer -->
+    <div class="filter-group">
+      <input type="checkbox" id="workrsCheckbox" checked />
+      <label for="workrsCheckbox">Show Employment (workrs19)</label>
+    </div>
+    <!-- Employment slider -->
+    <div class="filter-group">
+      <label for="workrsSlider">Employment Filter:</label>
+      <input
+        type="range"
+        id="workrsSlider"
+        name="workrsSlider"
+        min="0"
+        max="5000"
+        step="100"
+        value="0"
+      />
+      <span id="workrsValue">0</span>
+    </div>
+  </div>
+
+  <!-- The map container (fills the rest of the page) -->
+  <div id="map"></div>
+
+  <!-- MapLibre GL JS -->
+  <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
+
+  <!-- Our custom script -->
+  <script src="script.js"></script>
+</body>
+</html>
