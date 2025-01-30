@@ -5,18 +5,44 @@ body {
   font-family: sans-serif;
 }
 
-/* Sidebar on the left */
+/* The sidebar (#controls) can be positioned left, right, or bottom
+   via JavaScript toggling classes: .left, .right, .bottom.
+*/
+
+/* Default styling for #controls */
 #controls {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 25%;
   background-color: #f8f9fa;
   padding: 1rem;
-  height: 100vh;
   overflow-y: auto;
   box-sizing: border-box;
+  border: 1px solid #ccc;
+}
+
+/* Position classes */
+#controls.left {
+  left: 0;
+  right: auto;
+  bottom: auto;
+  width: 25%;
+  height: 100vh;
   border-right: 1px solid #ccc;
+}
+#controls.right {
+  right: 0;
+  left: auto;
+  bottom: auto;
+  width: 25%;
+  height: 100vh;
+  border-left: 1px solid #ccc;
+}
+#controls.bottom {
+  bottom: 0;
+  top: auto;
+  height: 25%;
+  width: 100%;
+  border-top: 1px solid #ccc;
 }
 
 /* Headline reset */
@@ -24,21 +50,33 @@ body {
   margin-top: 0;
 }
 
-/* Group styling */
+/* Groups for easy styling */
+.settings-group,
 .filter-group {
   margin-bottom: 1rem;
 }
-
 .filter-group label {
   display: block;
   margin-bottom: 0.5rem;
 }
 
-/* Map takes up remaining space */
+/* Map container (by default, let's assume a left sidebar using .left) */
 #map {
   position: absolute;
   top: 0;
   bottom: 0;
+  /* If the sidebar is 25% on the left: */
+  left: 25%;
   right: 0;
-  width: 75%;
+  transition: all 0.3s ease;
+}
+
+/* If the sidebar is .bottom, the map needs to accommodate that. 
+   But we handle these changes dynamically in script.js. 
+   If you want a fallback CSS approach, you can do something like:
+*/
+#controls.bottom ~ #map {
+  left: 0;
+  right: 0;
+  bottom: 25%;
 }

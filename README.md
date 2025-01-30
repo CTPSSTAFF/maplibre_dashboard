@@ -1,2 +1,3 @@
 # maplibre_dashboard
-CTPS Dashboard built on maplibre (repository name may be changed in future)
+
+CTPS Dashboard built on MapLibre (repository name may be changed in the future).

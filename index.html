@@ -15,14 +15,31 @@
 
   <!-- Turf.js for bounding box calculation -->
   <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
-
+  
   <!-- PMTiles integration for tile visualization -->
-   <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
+  <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
 </head>
 <body>
   <!-- Sidebar for controls -->
-  <div id="controls">
+  <div id="controls" class="left">
     <h1>TAZ Dashboard</h1>
+
+    <!-- Sidebar position dropdown -->
+    <div class="settings-group">
+      <label for="sidebarPosition">Sidebar Position:</label>
+      <select id="sidebarPosition">
+        <option value="left" selected>Left</option>
+        <option value="right">Right</option>
+        <option value="bottom">Bottom</option>
+      </select>
+    </div>
+
+    <!-- Sidebar control buttons -->
+    <div class="settings-group">
+      <button id="minimizeSidebar">Minimize</button>
+      <button id="maximizeSidebar">Maximize</button>
+      <button id="restoreSidebar">Restore</button>
+    </div>
 
     <!-- Checkbox for Population layer -->
     <div class="filter-group">

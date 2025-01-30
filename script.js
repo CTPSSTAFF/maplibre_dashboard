@@ -1,41 +1,149 @@
 let map;
 
- // add the PMTiles plugin to the maplibregl global.
+// Add the PMTiles plugin to the maplibregl global.
 const protocol = new pmtiles.Protocol();
-
 maplibregl.addProtocol('pmtiles', (request) => {
   return new Promise((resolve, reject) => {
     const callback = (err, data) => {
       if (err) {
         reject(err);
       } else {
-        resolve({data});
+        resolve({ data });
       }
     };
     protocol.tile(request, callback);
   });
 });
 
+// Our PMTiles URLs
 const PMTILES_URL_DEMO = 'https://vector-tiles-testing.s3.us-east-2.amazonaws.com/brmpo-demographics.pmtiles';
 const PMTILES_URL_ROAD = 'https://vector-tiles-testing.s3.us-east-2.amazonaws.com/brmpo_roads.pmtiles';
 const PMTILES_URL_MCFRM = 'https://vector-tiles-testing.s3.us-east-2.amazonaws.com/brmpo_mcfrm.pmtiles';
 
+// Initialize PMTiles objects (for caching metadata, etc.)
 const p_demo = new pmtiles.PMTiles(PMTILES_URL_DEMO);
 const p_road = new pmtiles.PMTiles(PMTILES_URL_ROAD);
-const p_mcfrm= new pmtiles.PMTiles(PMTILES_URL_MCFRM);
+const p_mcfrm = new pmtiles.PMTiles(PMTILES_URL_MCFRM);
 
+// Register them with our protocol
 protocol.add(p_demo);
 protocol.add(p_road);
 protocol.add(p_mcfrm);
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize the map with a plain background
+  // ==============
+  // SIDEBAR LOGIC
+  // ==============
+  const sidebar = document.getElementById('controls');
+  const sidebarPosition = document.getElementById('sidebarPosition');
+  const minimizeBtn = document.getElementById('minimizeSidebar');
+  const maximizeBtn = document.getElementById('maximizeSidebar');
+  const restoreBtn = document.getElementById('restoreSidebar');
+  const mapContainer = document.getElementById('map');
+
+  // Helper function to update sidebar position/size
+  function updateSidebarPosition(position) {
+    // Remove any existing position classes
+    sidebar.classList.remove('left', 'right', 'bottom');
+    sidebar.classList.add(position);
+
+    // Reset any inline styles we might have changed
+    sidebar.style.display = 'block';
+
+    if (position === 'left') {
+      // Sidebar on the left
+      sidebar.style.width = '25%';
+      sidebar.style.height = '100vh';
+      sidebar.style.left = '0';
+      sidebar.style.right = 'auto';
+      sidebar.style.bottom = 'auto';
+      
+      mapContainer.style.left = '25%';
+      mapContainer.style.right = '0';
+      mapContainer.style.bottom = '0';
+
+    } else if (position === 'right') {
+      // Sidebar on the right
+      sidebar.style.width = '25%';
+      sidebar.style.height = '100vh';
+      sidebar.style.right = '0';
+      sidebar.style.left = 'auto';
+      sidebar.style.bottom = 'auto';
+      
+      mapContainer.style.left = '0';
+      mapContainer.style.right = '25%';
+      mapContainer.style.bottom = '0';
+
+    } else if (position === 'bottom') {
+      // Sidebar at the bottom
+      sidebar.style.width = '100%';
+      sidebar.style.height = '25%';
+      sidebar.style.bottom = '0';
+      sidebar.style.left = '0';
+      sidebar.style.right = '0';
+      
+      mapContainer.style.left = '0';
+      mapContainer.style.right = '0';
+      mapContainer.style.bottom = '25%';
+    }
+  }
+
+  // Listen for changes in the dropdown
+  sidebarPosition.addEventListener('change', (e) => {
+    updateSidebarPosition(e.target.value);
+  });
+
+  // Minimize sidebar
+  minimizeBtn.addEventListener('click', () => {
+    sidebar.style.display = 'none';
+    mapContainer.style.left = '0';
+    mapContainer.style.right = '0';
+    mapContainer.style.bottom = '0';
+  });
+
+  // Maximize sidebar
+  maximizeBtn.addEventListener('click', () => {
+    sidebar.style.display = 'block';
+    sidebar.style.width = '75%';
+    sidebar.style.height = '100vh';
+
+    if (sidebar.classList.contains('left')) {
+      sidebar.style.left = '0';
+      mapContainer.style.left = '75%';
+      mapContainer.style.right = '0';
+      mapContainer.style.bottom = '0';
+    } else if (sidebar.classList.contains('right')) {
+      sidebar.style.right = '0';
+      mapContainer.style.left = '0';
+      mapContainer.style.right = '75%';
+      mapContainer.style.bottom = '0';
+    } else if (sidebar.classList.contains('bottom')) {
+      sidebar.style.bottom = '0';
+      sidebar.style.width = '100%';
+      sidebar.style.height = '75%';
+      mapContainer.style.left = '0';
+      mapContainer.style.right = '0';
+      mapContainer.style.bottom = '75%';
+    }
+  });
+
+  // Restore sidebar
+  restoreBtn.addEventListener('click', () => {
+    updateSidebarPosition(sidebarPosition.value);
+  });
+
+  // Apply default position on page load
+  updateSidebarPosition(sidebarPosition.value);
+
+
+  // ===================
+  // MAP INITIALIZATION
+  // ===================
   map = new maplibregl.Map({
     container: 'map',
     style: {
       version: 8,
-      // No raster sources; just an empty object
-      // sourcing pmtiles from S3 storage
+      // Our PMTiles are vector sources
       sources: {
         'brmpo_demo_tiles': {
           type: 'vector',
@@ -54,231 +162,223 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       },
       layers: [
+        // A simple background layer
         {
-          // A simple background layer so we have a neutral backdrop
           id: 'background',
           type: 'background',
           paint: {
-            'background-color': '#eeeeee' // light grey
-          },
-
+            'background-color': '#eeeeee'
+          }
         },
+        // 2022 demographic data (PMTiles) layer example
         {
-          // 2022 demographic data
-          'id': 'demo',
-          'source': 'brmpo_demo_tiles',
-          'source-layer': 'brmpo_tract',
-          'type': 'fill',
-          'paint': {
+          id: 'demo',
+          source: 'brmpo_demo_tiles',
+          'source-layer': 'brmpo_tract', // <-- your actual source-layer name from the pmtiles
+          type: 'fill',
+          paint: {
             'fill-color': '#f2f2f2',
             'fill-outline-color': 'white',
             'fill-opacity': 1
           }
         },
+        // MCFRM polygons: 2018
         {
-          // MCFRM polygons to show coastal flood risk, 2018
-          'id': 'mcfrm_prob_2018',
-          'source': 'brmpo_mcfrm_tiles',
+          id: 'mcfrm_prob_2018',
+          source: 'brmpo_mcfrm_tiles',
           'source-layer': 'mcfrm_prob_2018',
-          'type': 'fill',
-          'paint': {
+          type: 'fill',
+          paint: {
             'fill-color': '#6dd1fc',
             'fill-outline-color': '#6dd1fc',
-            'fill-opacity': .6
+            'fill-opacity': 0.6
           }
         },
+        // 2030
         {
-          // MCFRM polygons to show coastal flood risk, 2030
-          'id': 'mcfrm_prob_2030',
-          'source': 'brmpo_mcfrm_tiles',
+          id: 'mcfrm_prob_2030',
+          source: 'brmpo_mcfrm_tiles',
           'source-layer': 'mcfrm_prob_2030',
-          'type': 'fill',
-          'paint': {
+          type: 'fill',
+          paint: {
             'fill-color': '#6dd1fc',
             'fill-outline-color': '#6dd1fc',
-            'fill-opacity': .4
-
+            'fill-opacity': 0.4
           }
         },
+        // 2050
         {
-          // MCFRM polygons to show coastal flood risk, 2050
-          'id': 'mcfrm_prob_2050',
-          'source': 'brmpo_mcfrm_tiles',
+          id: 'mcfrm_prob_2050',
+          source: 'brmpo_mcfrm_tiles',
           'source-layer': 'mcfrm_prob_2050',
-          'type': 'fill',
-          'paint': {
+          type: 'fill',
+          paint: {
             'fill-color': '#6dd1fc',
-            'fill-outline-color':'#6dd1fc',
-            'fill-opacity': .2
-
+            'fill-outline-color': '#6dd1fc',
+            'fill-opacity': 0.2
           }
         },
+        // 2070
         {
-          // MCFRM polygons to show coastal flood risk, 2070
-          'id': 'mcfrm_prob_2070',
-          'source': 'brmpo_mcfrm_tiles',
+          id: 'mcfrm_prob_2070',
+          source: 'brmpo_mcfrm_tiles',
           'source-layer': 'mcfrm_prob_2070',
-          'type': 'fill',
-          'paint': {
+          type: 'fill',
+          paint: {
             'fill-color': '#6dd1fc',
-            'fill-outline-color':'#6dd1fc',
-            'fill-opacity': .1
-
+            'fill-outline-color': '#6dd1fc',
+            'fill-opacity': 0.1
           }
         },
+        // Major roads (casing)
         {
-          // Road Inventory major roads
-          'id': 'roads_major_casing',
-          'source': 'brmpo_road_tiles',
+          id: 'roads_major_casing',
+          source: 'brmpo_road_tiles',
           'source-layer': 'roads_major',
-          'type': 'line',
-          'layout': {
+          type: 'line',
+          layout: {
             'line-join': 'round',
             'line-cap': 'round'
           },
-          'paint': {
+          paint: {
             'line-color': '#fff',
             'line-gap-width': 1.2
-
           }
         },
+        // All roads
         {
-          // Road Inventory all roads
-          'id': 'roads_mpo',
-          'source': 'brmpo_road_tiles',
+          id: 'roads_mpo',
+          source: 'brmpo_road_tiles',
           'source-layer': 'roads_brmpo',
-          'type': 'line',
-          'minzoom': 11,
-          'layout': {
+          type: 'line',
+          minzoom: 11,
+          layout: {
             'line-join': 'round',
             'line-cap': 'round'
           },
-          'paint': {
+          paint: {
             'line-color': '#b0b0b0',
-            'line-width': .25
+            'line-width': 0.25
           }
         },
+        // Major roads
         {
-          // Road Inventory major roads
-          'id': 'roads_major',
-          'source': 'brmpo_road_tiles',
+          id: 'roads_major',
+          source: 'brmpo_road_tiles',
           'source-layer': 'roads_major',
-          'type': 'line',
-          'layout': {
+          type: 'line',
+          layout: {
             'line-join': 'round',
             'line-cap': 'round'
           },
-          'paint': {
+          paint: {
             'line-color': '#bfbfbf',
             'line-width': 1.1
-
           }
         }
       ]
     },
-    // A default center/zoom in case we can't fit bounds
+    // Default center/zoom if we don't have bounds
     center: [-95, 39],
     zoom: 4
   });
 
-  // Add standard navigation control
-map.addControl(new maplibregl.NavigationControl(), 'top-right');
+  // Add a Navigation Control (zoom in/out, rotate, etc.)
+  map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-  // When the map finishes loading, fetch & add our GeoJSON
-map.on('load', () => {
-  fetch('data/in_progress_taz_jan21.geojson')
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    console.log('GeoJSON fetch response:', response);
-    return response.json();
-  })
-  .then(geojsonData => {
-    console.log('Loaded GeoJSON data:', geojsonData);
-
-        // Add the GeoJSON as a source
-    map.addSource('tazData', {
-      type: 'geojson',
-      data: geojsonData
-    });
+  // =============
+  // LOAD GEOJSON
+  // =============
+  map.on('load', () => {
+    fetch('data/in_progress_taz_jan21.geojson')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(geojsonData => {
+        // Add as a new source
+        map.addSource('tazData', {
+          type: 'geojson',
+          data: geojsonData
+        });
 
         // Population layer (persns19)
-    map.addLayer({
-      id: 'populationLayer',
-      type: 'fill',
-      source: 'tazData',
-      paint: {
-            // Distinct color so we can see it easily
-            'fill-color': '#1f78b4', // a blue-ish color
+        map.addLayer({
+          id: 'populationLayer',
+          type: 'fill',
+          source: 'tazData',
+          paint: {
+            'fill-color': '#1f78b4', // blue
             'fill-opacity': 0.6
           }
         });
 
         // Employment layer (workrs19)
-    map.addLayer({
-      id: 'employmentLayer',
-      type: 'fill',
-      source: 'tazData',
-      paint: {
-            'fill-color': '#33a02c', // green-ish
+        map.addLayer({
+          id: 'employmentLayer',
+          type: 'fill',
+          source: 'tazData',
+          paint: {
+            'fill-color': '#33a02c', // green
             'fill-opacity': 0.6
           }
         });
 
-        // Optional outline for polygons
-    map.addLayer({
-      id: 'tazOutline',
-      type: 'line',
-      source: 'tazData',
-      paint: {
-        'line-color': '#333',
-        'line-width': 1
-      }
-    });
+        // Optional TAZ outline
+        map.addLayer({
+          id: 'tazOutline',
+          type: 'line',
+          source: 'tazData',
+          paint: {
+            'line-color': '#333',
+            'line-width': 1
+          }
+        });
 
-        // Fit the map to the bounding box of the data
-    const bounds = turf.bbox(geojsonData);
-    console.log('Computed bounds:', bounds);
-    if (bounds && Number.isFinite(bounds[0])) {
-      map.fitBounds(bounds, { padding: 30 });
-    } else {
-      console.warn('Could not compute valid bounds for GeoJSON data.');
-    }
+        // Fit map to the bounding box of the TAZ data
+        const bounds = turf.bbox(geojsonData);
+        if (bounds && Number.isFinite(bounds[0])) {
+          map.fitBounds(bounds, { padding: 30 });
+        } else {
+          console.warn('Could not compute valid bounds for GeoJSON data.');
+        }
 
-        // Setup UI controls (checkboxes, sliders)
-    setupControls();
-  })
-  .catch(err => {
-    console.error('Error loading or parsing GeoJSON:', err);
+        // Now hook up our checkboxes & sliders
+        setupControls();
+      })
+      .catch(err => {
+        console.error('Error loading or parsing TAZ GeoJSON:', err);
+      });
   });
-});
 });
 
 /**
- * Attaches event listeners to our checkboxes and sliders.
+ * Sets up the checkboxes and sliders for population/employment layers.
  */
 function setupControls() {
-  // --- Checkboxes ---
+  // Checkboxes
   const persCheck = document.getElementById('persCheckbox');
   const workrsCheck = document.getElementById('workrsCheckbox');
 
-  // Toggling population layer
+  // Population layer toggle
   persCheck.addEventListener('change', () => {
     toggleLayerVisibility('populationLayer', persCheck.checked);
   });
-  // Toggling employment layer
+
+  // Employment layer toggle
   workrsCheck.addEventListener('change', () => {
     toggleLayerVisibility('employmentLayer', workrsCheck.checked);
   });
 
-  // --- Sliders ---
+  // Sliders + text
   const persSlider = document.getElementById('persnsSlider');
   const persValue = document.getElementById('persnsValue');
   const workrsSlider = document.getElementById('workrsSlider');
   const workrsValue = document.getElementById('workrsValue');
 
-  // Show initial slider values
+  // Update visible text on page load
   persValue.textContent = persSlider.value;
   workrsValue.textContent = workrsSlider.value;
 
@@ -303,12 +403,10 @@ function toggleLayerVisibility(layerId, isVisible) {
 }
 
 /**
- * Filter polygons in populationLayer to those with persns19 >= slider value.
+ * Filter polygons in 'populationLayer' to those with persns19 >= slider value.
  */
 function applyPopulationFilter() {
   const sliderValue = parseInt(document.getElementById('persnsSlider').value, 10);
-  console.log('[Population Filter] persns19 >=', sliderValue);
-
   map.setFilter('populationLayer', [
     '>=',
     ['get', 'persns19'],
@@ -317,12 +415,10 @@ function applyPopulationFilter() {
 }
 
 /**
- * Filter polygons in employmentLayer to those with workrs19 >= slider value.
+ * Filter polygons in 'employmentLayer' to those with workrs19 >= slider value.
  */
 function applyEmploymentFilter() {
   const sliderValue = parseInt(document.getElementById('workrsSlider').value, 10);
-  console.log('[Employment Filter] workrs19 >=', sliderValue);
-
   map.setFilter('employmentLayer', [
     '>=',
     ['get', 'workrs19'],
