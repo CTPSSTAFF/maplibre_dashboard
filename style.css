@@ -1,44 +1,140 @@
 /* Basic reset */
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
 }
 
-/* Sidebar on the left */
-#controls {
+/* A simple top bar to hold controls horizontally */
+#topBar {
   position: absolute;
   top: 0;
   left: 0;
-  width: 25%;
-  background-color: #f8f9fa;
-  padding: 1rem;
-  height: 100vh;
-  overflow-y: auto;
-  box-sizing: border-box;
-  border-right: 1px solid #ccc;
+  width: 100%;
+  height: 40px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  z-index: 10;
+}
+#topBar button {
+  margin-right: 10px;
 }
 
-/* Headline reset */
-#controls h1 {
-  margin-top: 0;
-}
-
-/* Group styling */
-.filter-group {
-  margin-bottom: 1rem;
-}
-
-.filter-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-/* Map takes up remaining space */
+/* The map occupies the entire screen minus top bar, 
+   we’ll adjust for the drawer via JavaScript */
 #map {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 40px;  /* below topBar */
+  left: 0;
   right: 0;
-  width: 75%;
+  bottom: 0;
+  background: #ddd;
+  transition: all 0.3s ease;
+}
+
+/* Drawer base styles */
+.drawer {
+  position: absolute;
+  top: 40px; /* below the top bar */
+  bottom: 0;
+  background-color: #fafafa;
+  border: 1px solid #ccc;
+  overflow: hidden; /* We'll handle scroll within .drawer-content */
+  z-index: 20;
+  transition: all 0.3s ease;
+}
+
+/* If content is bigger than the drawer, scroll it */
+.drawer-content {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* A handle that the user can click & drag to resize the drawer */
+.drawer-handle {
+  background-color: #ccc;
+  cursor: col-resize;  /* typical for vertical boundary resizing */
+  width: 5px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  z-index: 5;
+}
+
+/* Drawer alignment classes */
+.drawer.left {
+  left: 0;
+  width: 300px; /* a default width */
+  /* The handle is on the right edge in left alignment */
+}
+.drawer.left .drawer-handle {
+  right: 0;
+}
+
+.drawer.right {
+  right: 0;
+  width: 300px;
+}
+.drawer.right .drawer-handle {
+  left: 0;
+  cursor: col-resize;
+}
+
+.drawer.bottom {
+  left: 0;
+  width: 100%;
+  height: 200px; /* default height for bottom alignment */
+}
+.drawer.bottom .drawer-handle {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: row-resize;
+}
+
+/* Collapsed vs. expanded (if you want to set states) */
+.drawer.collapsed {
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* "expanded" is just a semantic class you can use if you want. */
+/* resizing will be done dynamically anyway. */
+
+/* The popup for “Settings” */
+.popup {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #aaa;
+  padding: 1rem;
+  z-index: 100;
+}
+
+/* Hidden utility */
+.hidden {
+  display: none;
+}
+
+/* 
+ * RESPONSIVE STYLING / "rearrangement" 
+ * For demonstration, let's say if the drawer is narrower than 250px, 
+ * we stack certain elements differently, etc. 
+ */
+@media (max-width: 600px) {
+  /* You can do advanced rearranging via purely CSS if wanted, or JS-based approach. */
+  .drawer-content > .filter-group {
+    margin-bottom: 0.5rem;
+  }
 }

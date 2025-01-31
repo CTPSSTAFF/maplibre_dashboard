@@ -2,76 +2,108 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MapLibre TAZ Dashboard (No Raster)</title>
-  
+  <title>Modular MapLibre Dashboard</title>
+
   <!-- MapLibre GL CSS -->
   <link
     href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css"
     rel="stylesheet"
   />
-  
-  <!-- Our own custom CSS -->
-  <link rel="stylesheet" href="style.css" />
 
-  <!-- Turf.js for bounding box calculation -->
+  <!-- Our main CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Turf.js (for bounding box or other geo-ops) -->
   <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
-  <!-- PMTiles integration for tile visualization -->
-   <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
+  <!-- PMTiles (for vector tile sources) -->
+  <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
 </head>
 <body>
-  <!-- Sidebar for controls -->
-  <div id="controls">
-    <h1>TAZ Dashboard</h1>
 
-    <!-- Checkbox for Population layer -->
-    <div class="filter-group">
-      <input type="checkbox" id="persCheckbox" checked />
-      <label for="persCheckbox">Show Population (persns19)</label>
-    </div>
-    <!-- Population slider -->
-    <div class="filter-group">
-      <label for="persnsSlider">Population Filter:</label>
-      <input
-        type="range"
-        id="persnsSlider"
-        name="persnsSlider"
-        min="0"
-        max="5000"
-        step="100"
-        value="0"
-      />
-      <span id="persnsValue">0</span>
-    </div>
+  <!-- 
+    Top bar for quick controls — here we have:
+    1) A button to toggle the drawer open/closed 
+    2) A button to open settings
+  -->
+  <div id="topBar">
+    <button id="toggleDrawerBtn">Toggle Drawer</button>
+    <button id="openSettingsBtn">Settings</button>
+  </div>
 
-    <!-- Checkbox for Employment layer -->
-    <div class="filter-group">
-      <input type="checkbox" id="workrsCheckbox" checked />
-      <label for="workrsCheckbox">Show Employment (workrs19)</label>
-    </div>
-    <!-- Employment slider -->
-    <div class="filter-group">
-      <label for="workrsSlider">Employment Filter:</label>
-      <input
-        type="range"
-        id="workrsSlider"
-        name="workrsSlider"
-        min="0"
-        max="5000"
-        step="100"
-        value="0"
-      />
-      <span id="workrsValue">0</span>
+  <!-- The resizable drawer (initially aligned left) -->
+  <div id="drawer" class="drawer left expanded">
+    <!-- A visible handle the user can click-and-drag -->
+    <div id="drawerHandle" class="drawer-handle"></div>
+
+    <!-- The actual content container -->
+    <div id="drawerContent" class="drawer-content">
+      <h1>TAZ Dashboard</h1>
+
+      <!-- Example: population layer toggle -->
+      <div class="filter-group">
+        <input type="checkbox" id="persCheckbox" checked />
+        <label for="persCheckbox">Show Population (persns19)</label>
+      </div>
+      <div class="filter-group">
+        <label for="persnsSlider">Population Filter:</label>
+        <input
+          type="range"
+          id="persnsSlider"
+          name="persnsSlider"
+          min="0"
+          max="5000"
+          step="100"
+          value="0"
+        />
+        <span id="persnsValue">0</span>
+      </div>
+
+      <!-- Example: employment layer toggle -->
+      <div class="filter-group">
+        <input type="checkbox" id="workrsCheckbox" checked />
+        <label for="workrsCheckbox">Show Employment (workrs19)</label>
+      </div>
+      <div class="filter-group">
+        <label for="workrsSlider">Employment Filter:</label>
+        <input
+          type="range"
+          id="workrsSlider"
+          name="workrsSlider"
+          min="0"
+          max="5000"
+          step="100"
+          value="0"
+        />
+        <span id="workrsValue">0</span>
+      </div>
+
+      <!-- Additional content can go here -->
     </div>
   </div>
 
-  <!-- The map container (fills the rest of the page) -->
+  <!-- The main map container -->
   <div id="map"></div>
 
-  <!-- MapLibre GL JS -->
+  <!-- Popup for “Settings” (alignment selection, etc.) -->
+  <div id="settingsPopup" class="popup hidden">
+    <h2>Drawer Settings</h2>
+    <label for="drawerAlignment">Alignment:</label>
+    <select id="drawerAlignment">
+      <option value="left">Left</option>
+      <option value="right">Right</option>
+      <option value="bottom">Bottom</option>
+    </select>
+    <button id="closeSettingsBtn">Close</button>
+  </div>
+
+  <!-- MapLibre JS -->
   <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
 
-  <!-- Our custom script -->
-  <script src="script.js"></script>
+  <!-- Our scripts -->
+  <script src="scripts/sidebar.js"></script>
+  <script src="scripts/map.js"></script>
+  <script src="scripts/app.js"></script>
+
 </body>
 </html>
